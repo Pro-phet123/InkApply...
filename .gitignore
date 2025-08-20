@@ -1,0 +1,21 @@
+# Virtual environments
+venv310/
+venv/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VS Code settings
+.vscode/
+
+# PyTorch / ML large files (optional)
+*.pt
+*.pth
