@@ -29,7 +29,6 @@
 - **spaCy / NLTK** – For light NLP and keyword extraction (optional)
 
 ---
-
 ## 📸 Live Demo
 
 [🔗 Try the App on Hugging Face Spaces](comingsoon.....)
