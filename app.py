@@ -64,8 +64,15 @@ st.header("📥 Input Section")
 job_title = st.text_input("Job Title (e.g. Junior Data Scientist)")
 job_description = st.text_area("Paste the Job Description", height=150)
 
+# === FILE UPLOADER WITH DEBUG ===
 uploaded_file = st.file_uploader("📄 Upload Resume (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
 resume_content = ""
+
+# Debug logging to see if Streamlit detects the file
+if uploaded_file:
+    st.info(f"📂 File detected: {uploaded_file.name} ({uploaded_file.size} bytes, {uploaded_file.type})")
+else:
+    st.info("📂 No file selected yet.")
 
 # === FILE HANDLING ===
 if uploaded_file:
