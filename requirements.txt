@@ -4,7 +4,9 @@ streamlit==1.41.1
 
 
 # Transformers & Model Support
-transformers==4.40.1
+transformers==4.38.0
+#transformers==4.40.1
+torch==2.2.0
 sentencepiece  
 
 # File Uploads (PDF & DOCX)
