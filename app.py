@@ -60,53 +60,42 @@ st.markdown(
 
 # === INPUT SECTION ===
 st.header("📥 Input Section")
-
 job_title = st.text_input("Job Title (e.g. Junior Data Scientist)")
 job_description = st.text_area("Paste the Job Description", height=150)
 
-# === FILE UPLOADER WITH DEBUG ===
+# === FILE UPLOADER WITH DEBUG & FALLBACK ===
 uploaded_file = st.file_uploader("📄 Upload Resume (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
 resume_content = ""
 
-# Debug logging to see if Streamlit detects the file
 if uploaded_file:
-    st.info(f"📂 File detected: {uploaded_file.name} ({uploaded_file.size} bytes, {uploaded_file.type})")
-else:
-    st.info("📂 No file selected yet.")
-
-# === FILE HANDLING ===
-if uploaded_file:
+    st.info(f"📂 File selected: {uploaded_file.name} ({uploaded_file.size} bytes, {uploaded_file.type})")
     try:
         file_name = uploaded_file.name.lower()
 
         if file_name.endswith(".pdf"):
             from PyPDF2 import PdfReader
             pdf_reader = PdfReader(uploaded_file)
-            resume_content = "\n".join(
-                [page.extract_text() or "" for page in pdf_reader.pages]
-            ).strip()
+            resume_content = "\n".join([page.extract_text() or "" for page in pdf_reader.pages]).strip()
 
         elif file_name.endswith(".docx"):
             from docx import Document
             uploaded_file.seek(0)
             doc = Document(uploaded_file)
-            resume_content = "\n".join(
-                [p.text for p in doc.paragraphs if p.text.strip()]
-            ).strip()
+            resume_content = "\n".join([p.text for p in doc.paragraphs if p.text.strip()]).strip()
 
         elif file_name.endswith(".txt"):
             resume_content = uploaded_file.read().decode("utf-8").strip()
 
-        if resume_content:
-            st.success("✅ Resume loaded successfully from uploaded file.")
-        else:
+        if not resume_content:
             st.warning("⚠️ No readable text found in your resume. Please paste it below.")
             resume_content = st.text_area("Or Paste Your Resume Content", height=250)
 
     except Exception as e:
         st.error(f"❌ Error reading uploaded file: {e}")
         resume_content = st.text_area("Or Paste Your Resume Content", height=250)
+
 else:
+    st.info("📂 No file selected yet. You can paste your resume below.")
     resume_content = st.text_area("Or Paste Your Resume Content", height=250)
 
 # === GENERATE COVER LETTER ===
