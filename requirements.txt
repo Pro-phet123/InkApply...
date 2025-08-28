@@ -1,5 +1,5 @@
 # Core UI
-streamlit==3.10
+streamlit==3.11
 
 # Transformers & Model Support
 transformers==4.40.1
