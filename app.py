@@ -6,20 +6,38 @@ from docx import Document
 import streamlit as st
 
 from prompts import generate_cover_letter_prompt
-from hf_inference import query_llama3  # use the new Llama 3 API function
+from hf_inference import query_llama3  # Llama 3 API function
 
 # --- PAGE CONFIG & STYLING ---
-st.set_page_config(page_title="InkApply – AI Resume & Cover Letter Generator", layout="wide")
+st.set_page_config(
+    page_title="InkApply – AI Resume & Cover Letter Generator",
+    layout="wide",
+)
+
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-.sidebar-logo { display: flex; justify-content: center; align-items: center; padding: 1em; }
-.sidebar-logo img { border-radius: 50%; width: 130px; height: 130px; object-fit: cover; border: 2px solid #ccc; }
+
+.sidebar-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1em;
+}
+
+.sidebar-logo img {
+    border-radius: 50%;
+    width: 30vw;   /* responsive */
+    max-width: 130px;
+    height: auto;
+    object-fit: cover;
+    border: 2px solid #ccc;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar logo
+# --- Sidebar logo ---
 logo_path = "Inkapply-logo.png"
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as f:
@@ -35,7 +53,7 @@ st.header("📥 Input Section")
 job_title = st.text_input("Job Title (e.g. Senior Embedded Software Engineer)")
 job_description = st.text_area("Paste the Job Description", height=160)
 
-# --- Helper: parse uploaded file robustly ---
+# --- Helper: parse uploaded file ---
 def parse_uploaded_file(uploaded_file) -> str:
     try:
         raw = uploaded_file.read()
@@ -57,8 +75,12 @@ def parse_uploaded_file(uploaded_file) -> str:
         st.warning("⚠️ Could not parse uploaded file. Please paste your resume instead.")
         return ""
 
-# --- FILE UPLOADER ---
-uploaded_file = st.file_uploader("📄 Upload Resume (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
+# --- FILE UPLOADER (PDF preferred) ---
+uploaded_file = st.file_uploader(
+    "📄 Upload Your Resume (PDF preferred, DOCX/TXT also allowed)",
+    type=["pdf", "docx", "txt"]
+)
+
 resume_content = ""
 
 if uploaded_file:
@@ -69,6 +91,7 @@ if uploaded_file:
     else:
         st.warning("⚠️ Could not extract readable text from the file. You can paste below.")
 
+# --- FALLBACK TEXT AREA ---
 resume_content = st.text_area("Or Paste Your Resume Content", value=resume_content, height=260)
 
 # --- GENERATE COVER LETTER ---
