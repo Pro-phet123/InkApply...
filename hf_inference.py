@@ -1,18 +1,30 @@
+# hf_inference.py
 import os
 import requests
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct:fireworks-ai"
+API_URL = "https://router.huggingface.co/v1/chat/completions"
 
-def query_flan(prompt: str) -> str:
+def query_llama3(prompt: str) -> str:
+    """
+    Query Llama 3.1 via Hugging Face chat completion API.
+    Returns the AI-generated text.
+    """
+    if not HF_TOKEN:
+        raise ValueError("HF_TOKEN not set. Add it to Streamlit Secrets.")
+    
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": prompt, "parameters": {"max_new_tokens": 300}}
-    response = requests.post(API_URL, headers=headers, json=payload)
-
-    if response.status_code != 200:
-        raise Exception(f"API Error {response.status_code}: {response.text}")
-
-    data = response.json()
-    if isinstance(data, list) and "generated_text" in data[0]:
-        return data[0]["generated_text"]
-    return str(data)
+    payload = {
+        "model": MODEL_ID,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False  # set True for streaming if desired
+    }
+    
+    resp = requests.post(API_URL, headers=headers, json=payload, timeout=180)
+    
+    if resp.status_code != 200:
+        raise Exception(f"HF API Error {resp.status_code}: {resp.text}")
+    
+    data = resp.json()
+    return data["choices"][0]["message"]["content"]
