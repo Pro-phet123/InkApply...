@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#00E5FF"              # Refined neon cyan (less harsh than pure neon)
-backgroundColor = "#0B0F14"           # Deep space black (premium, not flat black)
-secondaryBackgroundColor = "#111827"  # Dark slate for sidebar & cards
-textColor = "#E5E7EB"                 # Soft white (easier on the eyes)
-font = "sans serif"                   # Modern SaaS feel (better than monospace)
+primaryColor = "#10A37F"              # OpenAI-style teal (premium, calm)
+backgroundColor = "#0E1117"           # ChatGPT dark background
+secondaryBackgroundColor = "#161B22"  # Card / sidebar surface
+textColor = "#E6EDF3"                 # Soft white, very readable
+font = "sans serif"
