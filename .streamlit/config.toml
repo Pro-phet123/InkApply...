@@ -1,5 +1,5 @@
 [theme]
-primaryColor = "#10A37F"              # OpenAI-style teal (premium, calm)
+primaryColor = "#000000ff"              # OpenAI-style teal (premium, calm)
 backgroundColor = "#0E1117"           # ChatGPT dark background
 secondaryBackgroundColor = "#161B22"  # Card / sidebar surface
 textColor = "#E6EDF3"                 # Soft white, very readable

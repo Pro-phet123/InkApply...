@@ -19,9 +19,9 @@ st.set_page_config(
 # --- GLOBAL STYLING (tight + premium) ---
 st.markdown("""
 <style>
-/* Remove top padding */
+/* Top breathing space */
 .block-container {
-    padding-top: 1.5rem !important;
+    padding-top: 2.75rem !important;
 }
 
 /* Typography */
@@ -50,14 +50,26 @@ section[data-testid="stSidebar"] {
     border: 1px solid #2a2a2a;
 }
 
-/* Inputs look calm until focused */
+/* ChatGPT-style inputs */
 textarea, input {
-    border-radius: 10px !important;
+    background-color: #1f1f1f !important;
+    border: 1px solid #2b2b2b !important;
+    border-radius: 12px !important;
+    padding: 0.75rem !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease-in-out;
 }
 
+/* Placeholder tone */
+textarea::placeholder, input::placeholder {
+    color: #9aa0a6 !important;
+}
+
+/* Focus state – subtle glow */
 textarea:focus, input:focus {
     border-color: #10A37F !important;
-    box-shadow: 0 0 0 1px rgba(16,163,127,0.35);
+    box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
+    outline: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -76,28 +88,25 @@ else:
     st.sidebar.markdown("### InkApply")
 
 
-# --- HERO (NO EXTRA SPACE) ---
+# --- HERO ---
 st.markdown(
-    "<h3 style='margin-bottom:0.2rem;'>AI Cover Letter Generator</h3>"
+    "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
     "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
     unsafe_allow_html=True
 )
 
 
-# --- PRIMARY INPUT (ALWAYS VISIBLE) ---
+# --- INPUTS ALWAYS VISIBLE ---
 job_title = st.text_input(
     "",
     placeholder="Job title (e.g. Senior Embedded Software Engineer)"
 )
 
-
-# --- COLLAPSIBLE SECTION: JOB DESCRIPTION ---
-with st.expander("Add job description (recommended)", expanded=False):
-    job_description = st.text_area(
-        "",
-        placeholder="Paste the job description here…",
-        height=160
-    )
+job_description = st.text_area(
+    "",
+    placeholder="Paste the job description here (optional but recommended)",
+    height=160
+)
 
 
 # --- Helper: parse resume ---
@@ -129,31 +138,32 @@ def parse_uploaded_file(uploaded_file) -> str:
         return ""
 
 
-# --- COLLAPSIBLE SECTION: RESUME ---
-with st.expander("Upload or paste resume", expanded=False):
-    uploaded_file = st.file_uploader(
-        "Upload resume (PDF preferred)",
-        type=["pdf", "docx", "txt"]
-    )
+# --- RESUME UPLOAD ---
+uploaded_file = st.file_uploader(
+    "Upload your resume (PDF preferred, DOCX/TXT supported)",
+    type=["pdf", "docx", "txt"]
+)
 
-    resume_content = ""
+resume_content = ""
 
-    if uploaded_file:
-        resume_content = parse_uploaded_file(uploaded_file)
-        if resume_content:
-            st.success("Resume loaded.")
-        else:
-            st.warning("Could not extract text.")
-
-    resume_content = st.text_area(
-        "",
-        placeholder="Or paste your resume content here…",
-        value=resume_content,
-        height=240
-    )
+if uploaded_file:
+    resume_content = parse_uploaded_file(uploaded_file)
+    if resume_content:
+        st.success("Resume loaded successfully.")
+    else:
+        st.warning("We couldn’t extract text. You can paste your resume below.")
 
 
-# --- GENERATE ---
+# --- RESUME PASTE AREA ---
+resume_content = st.text_area(
+    "",
+    placeholder="Or paste your resume content here…",
+    value=resume_content,
+    height=260
+)
+
+
+# --- GENERATE COVER LETTER ---
 if st.button("Generate cover letter ✨"):
     if not job_title.strip():
         st.warning("Please enter a job title.")
