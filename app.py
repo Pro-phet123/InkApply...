@@ -60,7 +60,7 @@ else:
 # --- HERO TEXT ---
 st.markdown(
     """
-    #<h2>AI Resume & Cover Letter Generator</h2>
+   
     <p style="color: #b3b3b3;">
         Quickly craft tailored documents for any job using AI.
     </p>
