@@ -14,5 +14,5 @@ def generate_cover_letter_prompt(job_title, job_description, resume):
         f"1. A brief introduction stating interest and role alignment.\n"
         f"2. A paragraph highlighting relevant skills and achievements.\n"
         f"3. A confident closing expressing gratitude and next steps.\n\n"
-        f"Return only the cover letter text without headers or metadata."
+        f"Return only the cover letter text without headers or metadata and make better than chatgpt."
     )
