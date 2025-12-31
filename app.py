@@ -109,32 +109,36 @@ job_description = st.text_area(
 )
 
 
-# --- Helper: parse resume ---
+# --- FIXED Helper: parse resume (Streamlit Cloud SAFE) ---
 def parse_uploaded_file(uploaded_file) -> str:
     try:
-        raw = uploaded_file.read()
-        name = uploaded_file.name.lower()
-        bio = BytesIO(raw)
+        file_name = uploaded_file.name.lower()
 
-        if name.endswith(".pdf"):
+        if file_name.endswith(".pdf"):
             from PyPDF2 import PdfReader
-            reader = PdfReader(bio)
+            reader = PdfReader(uploaded_file)
             return "\n".join(
-                p.extract_text() for p in reader.pages if p.extract_text()
+                page.extract_text()
+                for page in reader.pages
+                if page.extract_text()
             ).strip()
 
-        elif name.endswith(".docx"):
-            import docx
-            doc = docx.Document(bio)
-            return "\n".join(p.text for p in doc.paragraphs if p.text.strip()).strip()
+        elif file_name.endswith(".docx"):
+            from docx import Document
+            document = Document(uploaded_file)
+            return "\n".join(
+                para.text
+                for para in document.paragraphs
+                if para.text.strip()
+            ).strip()
 
-        elif name.endswith(".txt"):
-            return raw.decode("utf-8", errors="ignore").strip()
+        elif file_name.endswith(".txt"):
+            return uploaded_file.read().decode("utf-8", errors="ignore").strip()
 
         return ""
 
-    except Exception:
-        st.warning("Could not read file. Paste your resume instead.")
+    except Exception as e:
+        st.error(f"Failed to read file: {e}")
         return ""
 
 
