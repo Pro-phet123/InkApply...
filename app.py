@@ -11,29 +11,34 @@ from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
 
-# ---------------- SESSION STATE INIT ----------------
+# ================= SESSION STATE =================
 if "resume_content" not in st.session_state:
     st.session_state.resume_content = ""
 
-if "uploaded_filename" not in st.session_state:
-    st.session_state.uploaded_filename = None
 
-
-# ---------------- PAGE CONFIG ----------------
+# ================= PAGE CONFIG =================
 st.set_page_config(
-    page_title="InkApply – AI Cover Letter Generator",
+    page_title="InkApply – AI Resume & Cover Letter Generator",
     layout="wide",
 )
 
 
-# ---------------- GLOBAL STYLING ----------------
+# ================= GLOBAL STYLING (SAFE) =================
 st.markdown("""
 <style>
-.block-container { padding-top: 2.75rem !important; }
+.block-container {
+    padding-top: 2.75rem !important;
+}
 
+/* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-html, body, [class*="css"] {
+html, body {
     font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    padding-top: 1rem;
 }
 
 .sidebar-logo {
@@ -50,7 +55,9 @@ html, body, [class*="css"] {
     border: 1px solid #2a2a2a;
 }
 
-textarea, input {
+/* Text inputs ONLY — do NOT touch file input */
+textarea,
+input[type="text"] {
     background-color: #1f1f1f !important;
     border: 1px solid #2b2b2b !important;
     border-radius: 12px !important;
@@ -58,20 +65,27 @@ textarea, input {
     color: #ffffff !important;
 }
 
-textarea::placeholder, input::placeholder {
+textarea::placeholder,
+input[type="text"]::placeholder {
     color: #9aa0a6 !important;
 }
 
-textarea:focus, input:focus {
-    border-color: #00FFE7 !important;
-    box-shadow: 0 0 0 1px rgba(0,255,231,0.4);
+textarea:focus,
+input[type="text"]:focus {
+    border-color: #10A37F !important;
+    box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
     outline: none !important;
+}
+
+/* File input visibility fix */
+input[type="file"] {
+    color: #ffffff !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ---------------- SIDEBAR ----------------
+# ================= SIDEBAR =================
 logo_path = "Inkapply-logo.png"
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as f:
@@ -84,32 +98,33 @@ else:
     st.sidebar.markdown("### InkApply")
 
 
-# ---------------- HERO ----------------
-st.markdown("""
-<h3 style="margin-bottom:0.3rem;">AI Cover Letter Generator</h3>
-<p style="color:#9aa0a6;">Create tailored, job-ready cover letters in seconds.</p>
-""", unsafe_allow_html=True)
+# ================= HERO =================
+st.markdown(
+    "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
+    "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
+    unsafe_allow_html=True
+)
 
 
-# ---------------- INPUTS ----------------
+# ================= INPUTS =================
 job_title = st.text_input(
     "",
-    placeholder="Job title (e.g. Senior Data Scientist)"
+    placeholder="Job title (e.g. Senior Embedded Software Engineer)"
 )
 
 job_description = st.text_area(
     "",
-    placeholder="Paste the job description (recommended)",
+    placeholder="Paste the job description here (optional but recommended)",
     height=160
 )
 
 
-# ---------------- FILE PARSER ----------------
+# ================= FILE PARSER =================
 def parse_uploaded_file(uploaded_file) -> str:
     try:
-        filename = uploaded_file.name.lower()
+        name = uploaded_file.name.lower()
 
-        if filename.endswith(".pdf"):
+        if name.endswith(".pdf"):
             reader = PdfReader(uploaded_file)
             return "\n".join(
                 page.extract_text()
@@ -117,39 +132,37 @@ def parse_uploaded_file(uploaded_file) -> str:
                 if page.extract_text()
             ).strip()
 
-        elif filename.endswith(".docx"):
+        elif name.endswith(".docx"):
             return docx2txt.process(uploaded_file).strip()
 
-        elif filename.endswith(".txt"):
+        elif name.endswith(".txt"):
             return uploaded_file.read().decode("utf-8", errors="ignore").strip()
 
         return ""
 
     except Exception as e:
-        st.error(f"File parsing failed: {e}")
+        st.error(f"Failed to read file: {e}")
         return ""
 
 
-# ---------------- UPLOAD ----------------
+# ================= FILE UPLOAD =================
 uploaded_file = st.file_uploader(
-    "Upload your resume (PDF, DOCX, or TXT)",
-    type=["pdf", "docx", "txt"],
-    key="resume_uploader"
+    "Upload your resume (PDF preferred, DOCX/TXT supported)",
+    type=["pdf", "docx", "txt"]
 )
 
-if uploaded_file:
+if uploaded_file is not None:
     parsed_text = parse_uploaded_file(uploaded_file)
 
     if parsed_text:
         st.session_state.resume_content = parsed_text
-        st.session_state.uploaded_filename = uploaded_file.name
-        st.success(f"✅ Resume uploaded: **{uploaded_file.name}**")
+        st.success(f"Resume loaded: {uploaded_file.name}")
     else:
-        st.warning("Could not extract text. Please paste your resume manually.")
+        st.warning("Could not extract text. Please paste your resume below.")
 
 
-# ---------------- MANUAL / PREVIEW ----------------
-st.text_area(
+# ================= MANUAL RESUME INPUT =================
+st.session_state.resume_content = st.text_area(
     "",
     placeholder="Or paste your resume content here…",
     value=st.session_state.resume_content,
@@ -157,7 +170,7 @@ st.text_area(
 )
 
 
-# ---------------- GENERATION ----------------
+# ================= GENERATION =================
 if st.button("Generate cover letter ✨"):
     if not job_title.strip():
         st.warning("Please enter a job title.")
@@ -181,7 +194,7 @@ if st.button("Generate cover letter ✨"):
             try:
                 generated_text = query_llama3(prompt)
 
-                st.markdown("### ✉️ Your cover letter")
+                st.markdown("### Your cover letter")
                 st.write(generated_text.strip())
 
                 st.download_button(
