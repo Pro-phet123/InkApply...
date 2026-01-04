@@ -10,6 +10,8 @@ from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
 # ---------------- SESSION STATE ----------------
+if "resume_bytes" not in st.session_state:
+    st.session_state.resume_bytes = None
 if "resume_content" not in st.session_state:
     st.session_state.resume_content = ""
 if "uploaded_file_name" not in st.session_state:
@@ -68,41 +70,36 @@ job_description = st.text_area(
 )
 
 # ---------------- FILE PARSER ----------------
-def parse_uploaded_file(uploaded_file) -> str:
+def parse_uploaded_file(file_bytes: bytes, filename: str) -> str:
     """Return text from PDF, DOCX, or TXT in a Streamlit Cloud-safe way"""
     try:
-        filename = uploaded_file.name.lower()
-        file_bytes = uploaded_file.read()
-
         if filename.endswith(".pdf"):
             reader = PdfReader(BytesIO(file_bytes))
             text = [page.extract_text() for page in reader.pages if page.extract_text()]
             return "\n".join(text).strip()
-
         elif filename.endswith(".docx"):
             doc = Document(BytesIO(file_bytes))
             text = [para.text for para in doc.paragraphs if para.text.strip()]
             return "\n".join(text).strip()
-
         elif filename.endswith(".txt"):
             return file_bytes.decode("utf-8", errors="ignore").strip()
-
         return ""
     except Exception as e:
         st.error(f"Failed to read file: {e}")
         return ""
 
-# ---------------- UPLOAD ----------------
+# ---------------- FILE UPLOADER ----------------
 uploaded_file = st.file_uploader(
     "Upload your resume (PDF preferred, DOCX/TXT supported)",
     type=["pdf", "docx", "txt"]
 )
 
 if uploaded_file:
-    parsed_text = parse_uploaded_file(uploaded_file)
+    st.session_state.resume_bytes = uploaded_file.read()
+    st.session_state.uploaded_file_name = uploaded_file.name
+    parsed_text = parse_uploaded_file(st.session_state.resume_bytes, uploaded_file.name)
     if parsed_text:
         st.session_state.resume_content = parsed_text
-        st.session_state.uploaded_file_name = uploaded_file.name
         st.success(f"Resume '{uploaded_file.name}' loaded successfully!")
     else:
         st.warning("Could not extract text. Please paste your resume below.")
@@ -110,12 +107,12 @@ if uploaded_file:
 # ---------------- MANUAL RESUME INPUT ----------------
 st.session_state.resume_content = st.text_area(
     label=f"Resume content {'(from uploaded file: ' + st.session_state.uploaded_file_name + ')' if st.session_state.uploaded_file_name else ''}",
-    placeholder="Or paste your resume content here…",
     value=st.session_state.resume_content,
+    placeholder="Or paste your resume content here…",
     height=260
 )
 
-# ---------------- GENERATION ----------------
+# ---------------- GENERATE COVER LETTER ----------------
 if st.button("Generate cover letter ✨"):
     if not job_title.strip():
         st.warning("Please enter a job title.")
