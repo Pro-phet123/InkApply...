@@ -12,6 +12,7 @@ sentencepiece
 # File Uploads (PDF & DOCX)
 PyPDF2==3.0.1
 python-docx==1.1.0
+docx2txt==0.8
 
 # Environment Variable
 python-dotenv==1.0.1
