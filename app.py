@@ -11,9 +11,17 @@ from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
 
+# ---------------- SESSION STATE INIT ----------------
+if "resume_content" not in st.session_state:
+    st.session_state.resume_content = ""
+
+if "uploaded_filename" not in st.session_state:
+    st.session_state.uploaded_filename = None
+
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="InkApply – AI Resume & Cover Letter Generator",
+    page_title="InkApply – AI Cover Letter Generator",
     layout="wide",
 )
 
@@ -21,17 +29,11 @@ st.set_page_config(
 # ---------------- GLOBAL STYLING ----------------
 st.markdown("""
 <style>
-.block-container {
-    padding-top: 2.75rem !important;
-}
+.block-container { padding-top: 2.75rem !important; }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
-}
-
-section[data-testid="stSidebar"] {
-    padding-top: 1rem;
 }
 
 .sidebar-logo {
@@ -61,8 +63,8 @@ textarea::placeholder, input::placeholder {
 }
 
 textarea:focus, input:focus {
-    border-color: #10A37F !important;
-    box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
+    border-color: #00FFE7 !important;
+    box-shadow: 0 0 0 1px rgba(0,255,231,0.4);
     outline: none !important;
 }
 </style>
@@ -83,42 +85,39 @@ else:
 
 
 # ---------------- HERO ----------------
-st.markdown(
-    "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
-    "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
-    unsafe_allow_html=True
-)
+st.markdown("""
+<h3 style="margin-bottom:0.3rem;">AI Cover Letter Generator</h3>
+<p style="color:#9aa0a6;">Create tailored, job-ready cover letters in seconds.</p>
+""", unsafe_allow_html=True)
 
 
 # ---------------- INPUTS ----------------
 job_title = st.text_input(
     "",
-    placeholder="Job title (e.g. Senior Embedded Software Engineer)"
+    placeholder="Job title (e.g. Senior Data Scientist)"
 )
 
 job_description = st.text_area(
     "",
-    placeholder="Paste the job description here (optional but recommended)",
+    placeholder="Paste the job description (recommended)",
     height=160
 )
 
 
-# ---------------- FILE PARSER (CLOUD SAFE) ----------------
+# ---------------- FILE PARSER ----------------
 def parse_uploaded_file(uploaded_file) -> str:
     try:
         filename = uploaded_file.name.lower()
 
         if filename.endswith(".pdf"):
             reader = PdfReader(uploaded_file)
-            text = []
-            for page in reader.pages:
-                extracted = page.extract_text()
-                if extracted:
-                    text.append(extracted)
-            return "\n".join(text).strip()
+            return "\n".join(
+                page.extract_text()
+                for page in reader.pages
+                if page.extract_text()
+            ).strip()
 
         elif filename.endswith(".docx"):
-            # Streamlit Cloud safe
             return docx2txt.process(uploaded_file).strip()
 
         elif filename.endswith(".txt"):
@@ -127,34 +126,33 @@ def parse_uploaded_file(uploaded_file) -> str:
         return ""
 
     except Exception as e:
-        st.error(f"Failed to read file: {e}")
+        st.error(f"File parsing failed: {e}")
         return ""
 
 
 # ---------------- UPLOAD ----------------
 uploaded_file = st.file_uploader(
-    "Upload your resume (PDF preferred, DOCX/TXT supported)",
-    type=["pdf", "docx", "txt"]
+    "Upload your resume (PDF, DOCX, or TXT)",
+    type=["pdf", "docx", "txt"],
+    key="resume_uploader"
 )
 
-# 🔴 DEBUG — DO NOT REMOVE UNTIL CONFIRMED WORKING
-st.write("DEBUG uploaded_file:", uploaded_file)
-
-resume_content = ""
-
 if uploaded_file:
-    resume_content = parse_uploaded_file(uploaded_file)
-    if resume_content:
-        st.success("Resume loaded successfully.")
+    parsed_text = parse_uploaded_file(uploaded_file)
+
+    if parsed_text:
+        st.session_state.resume_content = parsed_text
+        st.session_state.uploaded_filename = uploaded_file.name
+        st.success(f"✅ Resume uploaded: **{uploaded_file.name}**")
     else:
-        st.warning("Could not extract text. Please paste your resume below.")
+        st.warning("Could not extract text. Please paste your resume manually.")
 
 
-# ---------------- MANUAL RESUME INPUT ----------------
-resume_content = st.text_area(
+# ---------------- MANUAL / PREVIEW ----------------
+st.text_area(
     "",
     placeholder="Or paste your resume content here…",
-    value=resume_content,
+    value=st.session_state.resume_content,
     height=260
 )
 
@@ -163,11 +161,15 @@ resume_content = st.text_area(
 if st.button("Generate cover letter ✨"):
     if not job_title.strip():
         st.warning("Please enter a job title.")
-    elif not resume_content.strip():
+    elif not st.session_state.resume_content.strip():
         st.warning("Please upload or paste your resume.")
     else:
-        trimmed_resume = " ".join(resume_content.split()[:300])
-        trimmed_desc = " ".join((job_description or "").split()[:200])
+        trimmed_resume = " ".join(
+            st.session_state.resume_content.split()[:300]
+        )
+        trimmed_desc = " ".join(
+            (job_description or "").split()[:200]
+        )
 
         prompt = generate_cover_letter_prompt(
             job_title.strip(),
@@ -179,7 +181,7 @@ if st.button("Generate cover letter ✨"):
             try:
                 generated_text = query_llama3(prompt)
 
-                st.markdown("### Your cover letter")
+                st.markdown("### ✉️ Your cover letter")
                 st.write(generated_text.strip())
 
                 st.download_button(
