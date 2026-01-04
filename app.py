@@ -4,88 +4,39 @@ from io import BytesIO
 
 import streamlit as st
 from PyPDF2 import PdfReader
-import docx2txt
 from docx import Document
 
 from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
-
-# ================= SESSION STATE =================
+# ---------------- SESSION STATE ----------------
 if "resume_content" not in st.session_state:
     st.session_state.resume_content = ""
+if "uploaded_file_name" not in st.session_state:
+    st.session_state.uploaded_file_name = ""
 
-
-# ================= PAGE CONFIG =================
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="InkApply – AI Resume & Cover Letter Generator",
     layout="wide",
 )
 
-
-# ================= GLOBAL STYLING (SAFE) =================
+# ---------------- GLOBAL STYLING ----------------
 st.markdown("""
 <style>
-.block-container {
-    padding-top: 2.75rem !important;
-}
-
-/* Fonts */
+.block-container { padding-top: 2.75rem !important; }
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-html, body {
-    font-family: 'Inter', sans-serif;
-}
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    padding-top: 1rem;
-}
-
-.sidebar-logo {
-    display: flex;
-    justify-content: center;
-    padding: 0.5rem 0 1rem 0;
-}
-
-.sidebar-logo img {
-    border-radius: 50%;
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border: 1px solid #2a2a2a;
-}
-
-/* Text inputs ONLY — do NOT touch file input */
-textarea,
-input[type="text"] {
-    background-color: #1f1f1f !important;
-    border: 1px solid #2b2b2b !important;
-    border-radius: 12px !important;
-    padding: 0.75rem !important;
-    color: #ffffff !important;
-}
-
-textarea::placeholder,
-input[type="text"]::placeholder {
-    color: #9aa0a6 !important;
-}
-
-textarea:focus,
-input[type="text"]:focus {
-    border-color: #10A37F !important;
-    box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
-    outline: none !important;
-}
-
-/* File input visibility fix */
-input[type="file"] {
-    color: #ffffff !important;
-}
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+section[data-testid="stSidebar"] { padding-top: 1rem; }
+.sidebar-logo { display: flex; justify-content: center; padding: 0.5rem 0 1rem 0; }
+.sidebar-logo img { border-radius: 50%; width: 90px; height: 90px; object-fit: cover; border: 1px solid #2a2a2a; }
+textarea, input { background-color: #1f1f1f !important; border: 1px solid #2b2b2b !important; border-radius: 12px !important; padding: 0.75rem !important; color: #ffffff !important; }
+textarea::placeholder, input::placeholder { color: #9aa0a6 !important; }
+textarea:focus, input:focus { border-color: #10A37F !important; box-shadow: 0 0 0 1px rgba(16,163,127,0.45); outline: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
-
-# ================= SIDEBAR =================
+# ---------------- SIDEBAR ----------------
 logo_path = "Inkapply-logo.png"
 if os.path.exists(logo_path):
     with open(logo_path, "rb") as f:
@@ -97,16 +48,14 @@ if os.path.exists(logo_path):
 else:
     st.sidebar.markdown("### InkApply")
 
-
-# ================= HERO =================
+# ---------------- HERO ----------------
 st.markdown(
     "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
     "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
     unsafe_allow_html=True
 )
 
-
-# ================= INPUTS =================
+# ---------------- INPUTS ----------------
 job_title = st.text_input(
     "",
     placeholder="Job title (e.g. Senior Embedded Software Engineer)"
@@ -118,71 +67,63 @@ job_description = st.text_area(
     height=160
 )
 
-
-# ================= FILE PARSER =================
+# ---------------- FILE PARSER ----------------
 def parse_uploaded_file(uploaded_file) -> str:
+    """Return text from PDF, DOCX, or TXT in a Streamlit Cloud-safe way"""
     try:
-        name = uploaded_file.name.lower()
+        filename = uploaded_file.name.lower()
+        file_bytes = uploaded_file.read()
 
-        if name.endswith(".pdf"):
-            reader = PdfReader(uploaded_file)
-            return "\n".join(
-                page.extract_text()
-                for page in reader.pages
-                if page.extract_text()
-            ).strip()
+        if filename.endswith(".pdf"):
+            reader = PdfReader(BytesIO(file_bytes))
+            text = [page.extract_text() for page in reader.pages if page.extract_text()]
+            return "\n".join(text).strip()
 
-        elif name.endswith(".docx"):
-            return docx2txt.process(uploaded_file).strip()
+        elif filename.endswith(".docx"):
+            doc = Document(BytesIO(file_bytes))
+            text = [para.text for para in doc.paragraphs if para.text.strip()]
+            return "\n".join(text).strip()
 
-        elif name.endswith(".txt"):
-            return uploaded_file.read().decode("utf-8", errors="ignore").strip()
+        elif filename.endswith(".txt"):
+            return file_bytes.decode("utf-8", errors="ignore").strip()
 
         return ""
-
     except Exception as e:
         st.error(f"Failed to read file: {e}")
         return ""
 
-
-# ================= FILE UPLOAD =================
+# ---------------- UPLOAD ----------------
 uploaded_file = st.file_uploader(
     "Upload your resume (PDF preferred, DOCX/TXT supported)",
     type=["pdf", "docx", "txt"]
 )
 
-if uploaded_file is not None:
+if uploaded_file:
     parsed_text = parse_uploaded_file(uploaded_file)
-
     if parsed_text:
         st.session_state.resume_content = parsed_text
-        st.success(f"Resume loaded: {uploaded_file.name}")
+        st.session_state.uploaded_file_name = uploaded_file.name
+        st.success(f"Resume '{uploaded_file.name}' loaded successfully!")
     else:
         st.warning("Could not extract text. Please paste your resume below.")
 
-
-# ================= MANUAL RESUME INPUT =================
+# ---------------- MANUAL RESUME INPUT ----------------
 st.session_state.resume_content = st.text_area(
-    "",
+    label=f"Resume content {'(from uploaded file: ' + st.session_state.uploaded_file_name + ')' if st.session_state.uploaded_file_name else ''}",
     placeholder="Or paste your resume content here…",
     value=st.session_state.resume_content,
     height=260
 )
 
-
-# ================= GENERATION =================
+# ---------------- GENERATION ----------------
 if st.button("Generate cover letter ✨"):
     if not job_title.strip():
         st.warning("Please enter a job title.")
     elif not st.session_state.resume_content.strip():
         st.warning("Please upload or paste your resume.")
     else:
-        trimmed_resume = " ".join(
-            st.session_state.resume_content.split()[:300]
-        )
-        trimmed_desc = " ".join(
-            (job_description or "").split()[:200]
-        )
+        trimmed_resume = " ".join(st.session_state.resume_content.split()[:300])
+        trimmed_desc = " ".join((job_description or "").split()[:200])
 
         prompt = generate_cover_letter_prompt(
             job_title.strip(),
@@ -197,6 +138,7 @@ if st.button("Generate cover letter ✨"):
                 st.markdown("### Your cover letter")
                 st.write(generated_text.strip())
 
+                # TXT download
                 st.download_button(
                     "Download TXT",
                     generated_text,
@@ -204,14 +146,13 @@ if st.button("Generate cover letter ✨"):
                     "text/plain"
                 )
 
+                # DOCX download
                 doc = Document()
                 doc.add_heading(f"Cover Letter – {job_title}", 0)
                 doc.add_paragraph(generated_text)
-
                 buffer = BytesIO()
                 doc.save(buffer)
                 buffer.seek(0)
-
                 st.download_button(
                     "Download Word (.docx)",
                     buffer,
