@@ -10,6 +10,13 @@ from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
 
+# ================= PAGE CONFIG (MUST BE FIRST) =================
+st.set_page_config(
+    page_title="InkApply – AI Resume & Cover Letter Generator",
+    layout="wide",
+)
+
+
 # ================= SESSION STATE =================
 if "resume_bytes" not in st.session_state:
     st.session_state.resume_bytes = None
@@ -19,13 +26,6 @@ if "resume_content" not in st.session_state:
 
 if "uploaded_file_name" not in st.session_state:
     st.session_state.uploaded_file_name = ""
-
-
-# ================= PAGE CONFIG =================
-st.set_page_config(
-    page_title="InkApply – AI Resume & Cover Letter Generator",
-    layout="wide",
-)
 
 
 # ================= GLOBAL STYLING =================
@@ -120,17 +120,15 @@ def parse_uploaded_file(file_bytes: bytes, filename: str) -> str:
     return ""
 
 
-# ================= FILE UPLOADER (FIXED) =================
+# ================= FILE UPLOADER (CHATGPT-STYLE FIXED) =================
 uploaded_file = st.file_uploader(
     "Upload your resume (PDF preferred, DOCX/TXT supported)",
     type=["pdf", "docx", "txt"]
 )
 
-# 🔑 CRITICAL FIX:
-# - use getvalue() (not .read())
-# - only parse when a NEW file is uploaded
+# Parse ONLY when a NEW file is uploaded
 if uploaded_file and uploaded_file.name != st.session_state.uploaded_file_name:
-    file_bytes = uploaded_file.getvalue()
+    file_bytes = uploaded_file.getvalue()  # ✅ SAFE
 
     parsed_text = parse_uploaded_file(file_bytes, uploaded_file.name)
 
@@ -153,7 +151,7 @@ resume_text = st.text_area(
     height=260
 )
 
-# 🔒 Persist edits without overwriting upload
+# Persist edits safely
 st.session_state.resume_content = resume_text
 
 
