@@ -1,30 +1,33 @@
 # hf_inference.py
 import os
-from openai import OpenAI
+import requests
 
 # Load Hugging Face API token from environment or Streamlit secrets
 HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct:novita"  # use the working deployment
-
-# Initialize the OpenAI-compatible client for Hugging Face
-client = OpenAI(
-    base_url="https://router.huggingface.co/v1",
-    api_key=HF_TOKEN,
-)
+MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct:novita"  # deployed model
+API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
 
 def query_llama3(prompt: str) -> str:
     """
-    Query Llama 3.1 via Hugging Face OpenAI-compatible API.
+    Query the deployed Llama 3 'novita' model via Hugging Face API.
     Returns the AI-generated text as a string.
     """
     if not HF_TOKEN:
         raise ValueError("HF_TOKEN not set. Add it to Streamlit Secrets.")
     
-    # Send prompt to Llama 3
-    completion = client.chat.completions.create(
-        model=MODEL_ID,
-        messages=[{"role": "user", "content": prompt}],
-    )
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {
+        "model": MODEL_ID,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False  # True if you want streaming output
+    }
 
-    # Extract the generated text
-    return completion.choices[0].message.content
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=180)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
+    except Exception as e:
+        # Debug-friendly error
+        print(f"HF API request failed: {e}")
+        return f"Error: {e}"
