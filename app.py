@@ -120,7 +120,7 @@ def parse_uploaded_file(file_bytes: bytes, filename: str) -> str:
     return ""
 
 
-# ================= FILE UPLOADER (CHATGPT-STYLE FIXED) =================
+# ================= FILE UPLOADER =================
 uploaded_file = st.file_uploader(
     "Upload your resume (PDF preferred, DOCX/TXT supported)",
     type=["pdf", "docx", "txt"]
@@ -128,7 +128,7 @@ uploaded_file = st.file_uploader(
 
 # Parse ONLY when a NEW file is uploaded
 if uploaded_file and uploaded_file.name != st.session_state.uploaded_file_name:
-    file_bytes = uploaded_file.getvalue()  # ✅ SAFE
+    file_bytes = uploaded_file.getvalue()
 
     parsed_text = parse_uploaded_file(file_bytes, uploaded_file.name)
 
@@ -151,8 +151,9 @@ resume_text = st.text_area(
     height=260
 )
 
-# Persist edits safely
-st.session_state.resume_content = resume_text
+# ✅ IMPORTANT FIX — prevent wiping content on rerun
+if resume_text.strip():
+    st.session_state.resume_content = resume_text
 
 
 # ================= GENERATE COVER LETTER =================
