@@ -1,39 +1,45 @@
+# hf_inference.py
 import os
 import requests
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-MODEL_ID = "meta-llama/Meta-Llama-3-8B-Instruct"
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL_ID}"
+MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct:novita"
+API_URL = "https://router.huggingface.co/v1/chat/completions"
 
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}",
-    "Content-Type": "application/json"
-}
 
 def query_llama3(prompt: str) -> str:
     if not HF_TOKEN:
-        raise ValueError("HF_TOKEN not set. Add it to Streamlit Secrets.")
+        return "Error: HF_TOKEN not set. Add it to Streamlit Secrets."
 
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 700,
-            "temperature": 0.7,
-            "top_p": 0.9,
-            "do_sample": True
-        }
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json",
     }
 
-    response = requests.post(API_URL, headers=headers, json=payload, timeout=180)
+    payload = {
+        "model": MODEL_ID,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a professional career assistant that writes clear, "
+                    "concise, tailored cover letters based on a resume and job description."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.7,
+        "max_tokens": 800,
+    }
 
-    if response.status_code != 200:
-        return f"HF Error {response.status_code}: {response.text}"
+    try:
+        response = requests.post(
+            API_URL, headers=headers, json=payload, timeout=180
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
 
-    data = response.json()
-
-    # HF returns list of generated texts
-    if isinstance(data, list) and "generated_text" in data[0]:
-        return data[0]["generated_text"]
-
-    return str(data)
+    except requests.exceptions.RequestException as e:
+        return f"HF API request failed: {e}"

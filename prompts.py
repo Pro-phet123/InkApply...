@@ -2,17 +2,35 @@
 
 def generate_cover_letter_prompt(job_title, job_description, resume):
     """
-    Construct a concise instruction for Flan-T5 to generate a tailored cover letter.
+    Construct a clear, structured prompt to generate a tailored cover letter.
     """
-    # Trim whitespace and ensure concise prompt
-    return (
-        f"Write a professional cover letter for the position of {job_title}.\n"
-        f"Use the job description and candidate background below to customize the letter.\n\n"
-        f"Job Description:\n{job_description}\n\n"
-        f"Candidate Background:\n{resume}\n\n"
-        f"The cover letter should include:\n"
-        f"1. A brief introduction stating interest and role alignment.\n"
-        f"2. A paragraph highlighting relevant skills and achievements.\n"
-        f"3. A confident closing expressing gratitude and next steps.\n\n"
-        f"Return only the cover letter text without headers or metadata and make better than chatgpt."
-    )
+
+    return f"""
+You are a professional career assistant.
+
+Write a well-structured, tailored cover letter for the position of **{job_title}** using the information below.
+
+JOB DESCRIPTION:
+{job_description}
+
+CANDIDATE BACKGROUND:
+{resume}
+
+GUIDELINES:
+- Keep the tone professional, clear, and confident
+- Match the candidate’s skills to the job requirements
+- Do NOT invent experience or qualifications
+- Suitable for a junior or early-career role or expert
+- Avoid buzzwords and unnecessary fluff
+
+STRUCTURE:
+1. Brief introduction expressing interest and alignment with the role
+2. One paragraph highlighting relevant skills, projects, or experience
+3. Polite and confident closing with appreciation
+
+OUTPUT RULES:
+- Return ONLY the cover letter text
+- No headings, explanations, or formatting outside the letter and make better than chatgpt
+"""
+
+
