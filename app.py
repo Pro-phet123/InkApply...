@@ -364,7 +364,7 @@ def extract_text_from_docx(file_bytes):
         raise Exception(f"DOCX reading error: {str(e)}")
 
 # ---------------- JOB DETAILS SECTION ----------------
-st.markdown('<p class="section-header">📋 Job Details</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-header"> Job Details</p>', unsafe_allow_html=True)
 
 job_title = st.text_input(
     "Job Title",
@@ -382,7 +382,7 @@ job_description = st.text_area(
 )
 
 # ---------------- RESUME SECTION ----------------
-st.markdown('<p class="section-header">📄 Your Resume</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-header"> Your Resume</p>', unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
     "Upload Resume (PDF or DOCX)",
