@@ -10,7 +10,7 @@ from hf_inference import query_llama3
 # ---------------- PAGE CONFIG ---------------- 
 st.set_page_config(
     page_title="InkApply – AI Cover Letter Generator",
-    page_icon="📝",
+    page_icon="Inkapply-logo.png",   # browser tab icon
     layout="wide",
 )
 
@@ -18,7 +18,8 @@ st.set_page_config(
 st.markdown("""
 <style>
 .block-container {
-    padding-top: 2.75rem !important;
+    padding-top: 2.5rem !important;
+    max-width: 900px;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
@@ -34,14 +35,15 @@ section[data-testid="stSidebar"] {
 .sidebar-logo {
     display: flex;
     justify-content: center;
-    padding: 0.5rem 0 1rem 0;
+    padding: 0.75rem 0 1.25rem 0;
 }
 
 .sidebar-logo img {
-    border-radius: 12px;
-    width: 120px;
-    height: auto;
-    object-fit: contain;
+    border-radius: 50%;
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border: 1px solid #2a2a2a;
 }
 
 textarea, input {
@@ -51,11 +53,6 @@ textarea, input {
     padding: 0.75rem !important;
     color: #ffffff !important;
 }
-            
-            /* Hide Streamlit branding */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
 
 textarea::placeholder, input::placeholder {
     color: #9aa0a6 !important;
@@ -82,12 +79,14 @@ else:
     st.sidebar.markdown("### InkApply")
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### About")
-st.sidebar.markdown("Generate professional, tailored cover letters using AI.")
+st.sidebar.markdown(
+    "<p style='color:#9aa0a6; text-align:center;'>AI Resume & Cover Letter Generator</p>",
+    unsafe_allow_html=True
+)
 
 # ---------------- HERO ---------------- 
 st.markdown(
-    "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
+    "<h3 style='margin-bottom:0.25rem;'>AI Cover Letter Generator</h3>"
     "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
     unsafe_allow_html=True
 )
