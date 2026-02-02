@@ -31,4 +31,4 @@
 ---
 ## 📸 Live Demo
 
-[🔗 Try the App on Hugging Face Spaces](comingsoon.....)
+[🔗 TryInkApply](https://inkapply-cover-letter.streamlit.app/)
