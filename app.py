@@ -54,6 +54,16 @@ st.markdown(
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
+    }
+   .sidebar-logo img {
+       border-radius: 50%;
+       width: 88px;
+       height: 88px;
+       object-fit: cover;
+       border: 1px solid #2a2a2a;
+}
+
+
     textarea::placeholder, input::placeholder { color: #9aa0a6 !important; }
     textarea:focus, input:focus {
         border-color: #10A37F !important;
