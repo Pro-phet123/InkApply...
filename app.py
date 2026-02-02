@@ -71,8 +71,8 @@ if os.path.exists(logo_path):
     with open(logo_path, "rb") as f:
         logo_base64 = base64.b64encode(f.read()).decode()
     st.sidebar.markdown(
-        f"""<div class="sidebar-logo"><img src="data:image/png;base64,{logo_base64}" /></div>""",
-        unsafe_allow_html=True,
+        f'<div class="sidebar-logo"><img src="data:image/png;base64,{logo_base64}" /></div>',
+        unsafe_allow_html=True
     )
 else:
     st.sidebar.markdown("### InkApply")
