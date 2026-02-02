@@ -1,461 +1,182 @@
 import os
 import base64
 from io import BytesIO
-
 import streamlit as st
 from PyPDF2 import PdfReader
 from docx import Document
-
 from prompts import generate_cover_letter_prompt
 from hf_inference import query_llama3
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- PAGE CONFIG ---------------- 
 st.set_page_config(
     page_title="InkApply – AI Cover Letter Generator",
-    page_icon="✨",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    page_icon="📝",
+    layout="wide",
 )
 
-# ---------------- FUTURISTIC CHATGPT-STYLE UI ----------------
+# ---------------- GLOBAL STYLING ---------------- 
 st.markdown("""
 <style>
-/* Import modern font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* Global styling */
-* {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Dark futuristic background */
-.stApp {
-    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1419 100%);
-    background-attachment: fixed;
-}
-
-/* Main container - ChatGPT style centered */
 .block-container {
-    max-width: 750px !important;
-    padding: 3rem 1.5rem !important;
+    padding-top: 2.75rem !important;
 }
 
-/* Hide Streamlit branding */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+section[data-testid="stSidebar"] {
+    padding-top: 1rem;
+}
+
+.sidebar-logo {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 1rem 0;
+}
+
+.sidebar-logo img {
+    border-radius: 12px;
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+}
+
+textarea, input {
+    background-color: #1f1f1f !important;
+    border: 1px solid #2b2b2b !important;
+    border-radius: 12px !important;
+    padding: 0.75rem !important;
+    color: #ffffff !important;
+}
+            
+            /* Hide Streamlit branding */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-/* Sidebar minimal styling */
-section[data-testid="stSidebar"] {
-    background: rgba(15, 20, 40, 0.95);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
+textarea::placeholder, input::placeholder {
+    color: #9aa0a6 !important;
 }
 
-/* Hero section - futuristic */
-h1, h2, h3 {
-    color: #ffffff !important;
-}
-
-/* Custom hero styling */
-.hero-container {
-    text-align: center;
-    padding: 2rem 0 3rem 0;
-    margin-bottom: 2rem;
-}
-
-.hero-icon {
-    font-size: 56px;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 20px rgba(16, 163, 127, 0.5));
-}
-
-.hero-title {
-    font-size: 42px !important;
-    font-weight: 700 !important;
-    background: linear-gradient(135deg, #10A37F 0%, #1fc8a0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.75rem !important;
-    letter-spacing: -0.02em;
-}
-
-.hero-subtitle {
-    font-size: 18px !important;
-    color: rgba(255, 255, 255, 0.55) !important;
-    font-weight: 400;
-    line-height: 1.6;
-}
-
-/* Section headers */
-.section-header {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 2rem 0 1rem 0 !important;
-    opacity: 0.7;
-}
-
-/* Text inputs - ChatGPT style */
-.stTextInput > div > div > input {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 14px !important;
-    padding: 1.1rem 1.4rem !important;
-    color: #ffffff !important;
-    font-size: 17px !important;
-    font-weight: 400 !important;
-    min-height: 58px !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.stTextInput > div > div > input:hover {
-    border-color: rgba(16, 163, 127, 0.5) !important;
-    background: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: 0 6px 20px rgba(16, 163, 127, 0.15);
-}
-
-.stTextInput > div > div > input:focus {
+textarea:focus, input:focus {
     border-color: #10A37F !important;
-    background: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2), 0 8px 24px rgba(16, 163, 127, 0.2) !important;
+    box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
     outline: none !important;
-}
-
-/* Text areas - larger and modern */
-.stTextArea > div > div > textarea {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 14px !important;
-    padding: 1.1rem 1.4rem !important;
-    color: #ffffff !important;
-    font-size: 16px !important;
-    font-weight: 400 !important;
-    line-height: 1.65 !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.stTextArea > div > div > textarea:hover {
-    border-color: rgba(16, 163, 127, 0.5) !important;
-    background: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: 0 6px 20px rgba(16, 163, 127, 0.15);
-}
-
-.stTextArea > div > div > textarea:focus {
-    border-color: #10A37F !important;
-    background: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2), 0 8px 24px rgba(16, 163, 127, 0.2) !important;
-    outline: none !important;
-}
-
-/* Placeholder text */
-input::placeholder, textarea::placeholder {
-    color: rgba(255, 255, 255, 0.35) !important;
-    font-size: 16px !important;
-    font-weight: 400 !important;
-}
-
-/* File uploader - modern card style */
-.stFileUploader {
-    margin: 1.5rem 0 !important;
-}
-
-.stFileUploader > label {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    margin-bottom: 0.75rem !important;
-}
-
-.stFileUploader > div > div {
-    background: rgba(255, 255, 255, 0.04) !important;
-    border: 2px dashed rgba(255, 255, 255, 0.2) !important;
-    border-radius: 16px !important;
-    padding: 2.5rem 2rem !important;
-    text-align: center !important;
-    transition: all 0.3s ease !important;
-}
-
-.stFileUploader > div > div:hover {
-    background: rgba(255, 255, 255, 0.06) !important;
-    border-color: rgba(16, 163, 127, 0.5) !important;
-}
-
-/* Generate button - prominent ChatGPT style */
-.stButton > button {
-    background: linear-gradient(135deg, #10A37F 0%, #0d8c6a 100%) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 14px !important;
-    padding: 1.15rem 2.5rem !important;
-    font-size: 17px !important;
-    font-weight: 600 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin: 2rem 0 !important;
-    min-height: 58px !important;
-    width: 100% !important;
-    box-shadow: 0 4px 16px rgba(16, 163, 127, 0.3), 0 8px 32px rgba(16, 163, 127, 0.15) !important;
-    letter-spacing: 0.3px;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #0d8c6a 0%, #0a6b51 100%) !important;
-    box-shadow: 0 6px 24px rgba(16, 163, 127, 0.4), 0 12px 48px rgba(16, 163, 127, 0.25) !important;
-    transform: translateY(-2px) !important;
-}
-
-.stButton > button:active {
-    transform: translateY(0px) !important;
-}
-
-/* Download buttons - sleek modern style */
-.stDownloadButton > button {
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 12px !important;
-    padding: 0.9rem 1.8rem !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    margin: 0.75rem 0.5rem 0.75rem 0 !important;
-    transition: all 0.25s ease !important;
-}
-
-.stDownloadButton > button:hover {
-    background: rgba(255, 255, 255, 0.12) !important;
-    border-color: #10A37F !important;
-    box-shadow: 0 4px 12px rgba(16, 163, 127, 0.2) !important;
-}
-
-/* Alert messages - modern cards */
-.stAlert {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 12px !important;
-    padding: 1.2rem 1.5rem !important;
-    font-size: 15px !important;
-    margin: 1.5rem 0 !important;
-    backdrop-filter: blur(10px);
-}
-
-/* Success alert */
-.stSuccess {
-    background: rgba(16, 163, 127, 0.12) !important;
-    border-color: rgba(16, 163, 127, 0.4) !important;
-}
-
-/* Warning alert */
-.stWarning {
-    background: rgba(255, 193, 7, 0.12) !important;
-    border-color: rgba(255, 193, 7, 0.4) !important;
-}
-
-/* Error alert */
-.stError {
-    background: rgba(244, 67, 54, 0.12) !important;
-    border-color: rgba(244, 67, 54, 0.4) !important;
-}
-
-/* Info alert */
-.stInfo {
-    background: rgba(33, 150, 243, 0.12) !important;
-    border-color: rgba(33, 150, 243, 0.4) !important;
-}
-
-/* Labels */
-label {
-    color: rgba(255, 255, 255, 0.75) !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    margin-bottom: 0.6rem !important;
-}
-
-/* Spinner - themed */
-.stSpinner > div {
-    border-color: #10A37F transparent transparent transparent !important;
-}
-
-/* Divider */
-hr {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    margin: 2.5rem 0 !important;
-}
-
-/* Spacing */
-.stTextInput, .stTextArea, .stFileUploader {
-    margin-bottom: 1.5rem !important;
-}
-
-/* Output section styling */
-.output-section {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Subheaders */
-h3 {
-    font-size: 24px !important;
-    font-weight: 600 !important;
-    margin: 2rem 0 1.25rem 0 !important;
-    color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-}
-
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HERO SECTION ----------------
-st.markdown("""
-<div class="hero-container">
-    <div class="hero-icon">✨</div>
-    <h1 class="hero-title">InkApply</h1>
-    <p class="hero-subtitle">Transform your resume into tailored cover letters with AI precision</p>
-</div>
-""", unsafe_allow_html=True)
+# ---------------- SIDEBAR WITH LOGO ---------------- 
+logo_path = "Inkapply-logo.png"
+if os.path.exists(logo_path):
+    with open(logo_path, "rb") as f:
+        logo_base64 = base64.b64encode(f.read()).decode()
+    st.sidebar.markdown(
+        f'<div class="sidebar-logo"><img src="data:image/png;base64,{logo_base64}" /></div>',
+        unsafe_allow_html=True
+    )
+else:
+    st.sidebar.markdown("### InkApply")
 
-# ---------------- HELPER FUNCTIONS (FIXED) ----------------
-def extract_text_from_pdf(file_bytes):
-    """Extract text from PDF file bytes"""
+st.sidebar.markdown("---")
+st.sidebar.markdown("### About")
+st.sidebar.markdown("Generate professional, tailored cover letters using AI.")
+
+# ---------------- HERO ---------------- 
+st.markdown(
+    "<h3 style='margin-bottom:0.35rem;'>AI Cover Letter Generator</h3>"
+    "<p style='color:#9aa0a6; margin-top:0;'>Create tailored cover letters in seconds.</p>",
+    unsafe_allow_html=True
+)
+
+# ---------------- HELPER FUNCTIONS ---------------- 
+def extract_text_from_pdf(file):
+    """Extract text from PDF file"""
     try:
-        pdf_file = BytesIO(file_bytes)
-        reader = PdfReader(pdf_file)
-        text_parts = []
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text_parts.append(page_text)
-        return "\n".join(text_parts).strip()
+        reader = PdfReader(file)
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
     except Exception as e:
-        raise Exception(f"PDF reading error: {str(e)}")
+        st.error(f"Failed to read PDF: {e}")
+        return ""
 
-def extract_text_from_docx(file_bytes):
-    """Extract text from DOCX file bytes"""
+def extract_text_from_docx(file):
+    """Extract text from DOCX file"""
     try:
-        docx_file = BytesIO(file_bytes)
-        doc = Document(docx_file)
-        text_parts = [paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip()]
-        return "\n".join(text_parts).strip()
+        doc = Document(file)
+        return "\n".join(p.text for p in doc.paragraphs)
     except Exception as e:
-        raise Exception(f"DOCX reading error: {str(e)}")
+        st.error(f"Failed to read DOCX: {e}")
+        return ""
 
-# ---------------- JOB DETAILS SECTION ----------------
-st.markdown('<p class="section-header"> Job Details</p>', unsafe_allow_html=True)
-
+# ---------------- INPUTS ---------------- 
 job_title = st.text_input(
-    "Job Title",
-    placeholder="e.g., Senior Product Designer, Software Engineer, Marketing Manager",
-    key="job_title_input",
-    label_visibility="collapsed"
+    "",
+    placeholder="Job title (e.g. Senior Software Engineer)",
+    key="job_title_input"
 )
 
 job_description = st.text_area(
-    "Job Description",
-    placeholder="Paste the complete job description here...\n\nInclude requirements, responsibilities, and qualifications for best results.",
-    height=240,
-    key="job_desc_input",
-    label_visibility="collapsed"
+    "",
+    placeholder="Paste the job description here...",
+    height=160,
+    key="job_desc_input"
 )
 
-# ---------------- RESUME SECTION ----------------
-st.markdown('<p class="section-header"> Your Resume</p>', unsafe_allow_html=True)
-
+# ---------------- FILE UPLOADER ---------------- 
 uploaded_file = st.file_uploader(
-    "Upload Resume (PDF or DOCX)",
-    type=["pdf", "docx"],
-    help="Drag and drop or click to upload your resume",
-    key="resume_uploader",
-    label_visibility="collapsed"
+    "Upload your resume (PDF or DOCX)",
+    type=["pdf", "docx"]
 )
 
-# ---------------- FILE PROCESSING (FIXED) ----------------
+# ---------------- RESUME HANDLING ---------------- 
 resume_text = ""
 
 if uploaded_file is not None:
-    st.success(f"✅ '{uploaded_file.name}' uploaded successfully!")
+    st.success(f"Resume '{uploaded_file.name}' uploaded successfully ✅")
     
     try:
-        # Read file bytes
-        file_bytes = uploaded_file.getvalue()
-        
-        # Process based on file type
-        if uploaded_file.name.endswith('.pdf'):
-            resume_text = extract_text_from_pdf(file_bytes)
-        elif uploaded_file.name.endswith('.docx'):
-            resume_text = extract_text_from_docx(file_bytes)
+        if uploaded_file.type == "application/pdf":
+            resume_text = extract_text_from_pdf(uploaded_file)
         else:
-            st.error("❌ Unsupported file format")
+            resume_text = extract_text_from_docx(uploaded_file)
         
-        # Show preview if text extracted
+        # Show preview immediately
         if resume_text:
-            with st.expander("📝 Preview Extracted Resume", expanded=False):
-                st.text_area(
-                    "Resume Content",
-                    value=resume_text,
-                    height=300,
-                    key="resume_preview",
-                    disabled=True,
-                    label_visibility="collapsed"
-                )
-        else:
-            st.warning("⚠️ No text extracted. Your PDF might be image-based or empty.")
-            
+            st.markdown("#### 📄 Resume Preview")
+            st.text_area(
+                "Extracted Resume Content",
+                value=resume_text,
+                height=250,
+                key="resume_preview",
+                disabled=True
+            )
     except Exception as e:
-        st.error(f"❌ Error processing file: {str(e)}")
-        st.info("💡 Try: Check if PDF is password-protected or contains selectable text")
+        st.error(f"Failed to read resume file: {e}")
 
-# ---------------- MANUAL INPUT OPTION ----------------
-st.markdown('<p class="section-header" style="margin-top: 2.5rem;">Or paste your resume text</p>', unsafe_allow_html=True)
-
+# ---------------- OPTIONAL MANUAL OVERRIDE ---------------- 
 manual_resume = st.text_area(
-    "Manual Resume Input",
-    height=220,
-    placeholder="If file upload didn't work, paste your resume content here...",
-    key="manual_resume_input",
-    label_visibility="collapsed"
+    "Or paste your resume here (optional)",
+    height=200,
+    placeholder="Only use this if you didn't upload a file",
+    key="manual_resume_input"
 )
 
-# Determine final resume text
+# Prefer uploaded resume
 final_resume = resume_text.strip() or manual_resume.strip()
 
-# ---------------- GENERATE BUTTON ----------------
-generate_clicked = st.button("✨ Generate Cover Letter", use_container_width=True, type="primary")
-
-if generate_clicked:
-    # Validation
+# ---------------- GENERATE BUTTON ---------------- 
+if st.button("Generate cover letter ✨", type="primary"):
     if not job_title.strip():
-        st.warning("⚠️ Please enter a job title")
+        st.warning("⚠️ Please provide a job title.")
     elif not job_description.strip():
-        st.warning("⚠️ Please paste the job description")
+        st.warning("⚠️ Please provide a job description.")
     elif not final_resume:
-        st.warning("⚠️ Please upload your resume or paste the text")
+        st.warning("⚠️ Please upload a resume or paste one.")
     else:
-        # Generate cover letter
-        with st.spinner("🤖 Crafting your personalized cover letter..."):
+        with st.spinner("Generating your cover letter..."):
             try:
                 prompt = generate_cover_letter_prompt(
                     job_title.strip(),
@@ -465,59 +186,41 @@ if generate_clicked:
                 
                 result = query_llama3(prompt)
                 
-                # Display output section
-                st.markdown('<div class="output-section">', unsafe_allow_html=True)
+                st.markdown("---")
                 st.markdown("### ✉️ Your Cover Letter")
-                
                 st.text_area(
-                    "Generated Cover Letter",
+                    "",
                     value=result,
-                    height=450,
-                    key="cover_letter_output",
-                    label_visibility="collapsed"
+                    height=350,
+                    key="generated_cover_letter"
                 )
                 
-                # Download options
-                st.markdown("#### 💾 Download")
-                
+                # Download buttons
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     st.download_button(
-                        "📄 Download as TXT",
-                        data=result,
-                        file_name=f"cover_letter_{job_title.replace(' ', '_')}.txt",
-                        mime="text/plain",
-                        use_container_width=True
+                        "📥 Download TXT",
+                        result,
+                        "cover_letter.txt",
+                        "text/plain"
                     )
                 
                 with col2:
-                    # Create Word document
+                    # Create DOCX
                     doc = Document()
                     doc.add_heading(f"Cover Letter – {job_title}", 0)
                     doc.add_paragraph(result)
-                    
                     buffer = BytesIO()
                     doc.save(buffer)
                     buffer.seek(0)
                     
                     st.download_button(
-                        "📝 Download as DOCX",
-                        data=buffer,
-                        file_name=f"cover_letter_{job_title.replace(' ', '_')}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True
+                        "📥 Download DOCX",
+                        buffer,
+                        "cover_letter.docx",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                 
-                st.markdown('</div>', unsafe_allow_html=True)
-                
             except Exception as e:
-                st.error(f"❌ Generation failed: {str(e)}")
-                st.info("💡 Try refreshing the page and trying again")
-
-# ---------------- FOOTER ----------------
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown(
-    "<p style='text-align: center; color: rgba(255, 255, 255, 0.3); font-size: 13px;'>Powered by AI • InkApply © 2024</p>",
-    unsafe_allow_html=True
-)
+                st.error(f"❌ Generation failed: {e}")
