@@ -39,7 +39,7 @@ st.markdown(
 
     section[data-testid="stSidebar"] { padding-top: 1rem; }
     .sidebar-logo { display: flex; justify-content: center; padding: 0.5rem 0 1rem 0; }
-    .sidebar-logo img { border-radius: 12px; width: 120px; height: auto; object-fit: contain; }
+    .sidebar-logo img { border-radius: 50%; width: 88px; height: 88px; object-fit: cover; border: 1px solid #2a2a2a; }
 
     textarea, input {
         background-color: #1f1f1f !important;
@@ -54,13 +54,7 @@ st.markdown(
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    }
-   .sidebar-logo img {
-       border-radius: 50%;
-       width: 88px;
-       height: 88px;
-       object-fit: cover;
-       border: 1px solid #2a2a2a;
+       
 }
 
 
