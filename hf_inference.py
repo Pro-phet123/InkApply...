@@ -6,7 +6,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 # Using serverless inference — fastest available route
 MODEL_ID = "meta-llama/Llama-3.1-8B-Instruct"
-API_URL  = "https://router.huggingface.co/novita/v1/chat/completions"
+API_URL  = "https://router.huggingface.co/v1/chat/completions"
 
 
 def query_llama3(prompt: str, retries: int = 2) -> str:
