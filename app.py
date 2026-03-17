@@ -200,7 +200,7 @@ if st.button("Generate cover letter ✨"):
 
 # ---------------- N.B NOTE ----------------
 st.markdown(
-    "<pclass='ink-nb'><span></span> N.B Review the cover letter output and regenerate if any errors occurred "
+    "<pclass='ink-nb'><span>•</span> N.B Review the cover letter output and regenerate if any errors occurred "
     "before downloading. InkApply can make mistakes.</p>",
     unsafe_allow_html=True,
 )
