@@ -21,18 +21,15 @@ st.set_page_config(
 # ---------------- CACHE MODEL (anti-buffering fix) ----------------
 @st.cache_resource(show_spinner="Loading AI model… (first run only)")
 def get_llm():
-    # If you load a local pipeline, initialise it here so it is cached.
-    # from transformers import pipeline
-    # return pipeline("text-generation", model="your-model")
-    return True  # replace with your model object if running locally
+    return True
 
-get_llm()  # warm up on every page load — runs instantly after first time
+get_llm()
 
 # ---------------- SESSION STATE DEFAULTS ----------------
 st.session_state.setdefault("resume_bytes", None)
 st.session_state.setdefault("resume_content", "")
 st.session_state.setdefault("uploaded_file_name", "")
-st.session_state.setdefault("cover_letter", "")  # persists result across reruns
+st.session_state.setdefault("cover_letter", "")
 
 # ---------------- GLOBAL STYLING (LEFT, FULL-WIDTH) ----------------
 st.markdown(
@@ -70,6 +67,18 @@ st.markdown(
         border-color: #10A37F !important;
         box-shadow: 0 0 0 1px rgba(16,163,127,0.45);
         outline: none !important;
+    }
+
+    .ink-nb {
+        margin-top: 0.5rem;
+        font-size: 0.78rem;
+        color: #9aa0a6;
+        font-style: italic;
+    }
+    .ink-nb span {
+        color: #f0a500;
+        font-weight: 600;
+        font-style: normal;
     }
     </style>
     """,
@@ -128,7 +137,6 @@ uploaded_file = st.file_uploader(
     key="resume_uploader",
 )
 
-# When a file is uploaded in this run -> store bytes & parse immediately
 if uploaded_file is not None:
     try:
         file_bytes = uploaded_file.read()
@@ -144,14 +152,11 @@ if uploaded_file is not None:
     except Exception as e:
         st.error(f"Upload failed: {e}")
 
-# If there is already bytes in session_state from a previous upload,
-# but uploader is empty (rerun), ensure resume_content is available.
 if uploaded_file is None and st.session_state.get("resume_bytes") and not st.session_state.get("resume_content"):
     parsed_text = parse_uploaded_file(st.session_state.resume_bytes, st.session_state.uploaded_file_name or "resume")
     if parsed_text:
         st.session_state.resume_content = parsed_text
 
-# Show uploaded filename (if any) so user sees it after reruns
 if st.session_state.get("uploaded_file_name"):
     st.info(f"Uploaded: {st.session_state.uploaded_file_name}")
 
@@ -167,7 +172,6 @@ new_text = st.text_area(
     key="resume_textarea",
 )
 
-# If user edited the textarea, persist changes to session_state
 if new_text != st.session_state.get("resume_content", ""):
     st.session_state.resume_content = new_text
 
@@ -190,9 +194,16 @@ if st.button("Generate cover letter ✨"):
         with st.spinner("Generating your cover letter…"):
             try:
                 generated_text = query_llama3(prompt)
-                st.session_state.cover_letter = generated_text.strip()  # persist result
+                st.session_state.cover_letter = generated_text.strip()
             except Exception as e:
                 st.error(f"Generation failed: {e}")
+
+# ---------------- N.B NOTE ----------------
+st.markdown(
+    "<p class='ink-nb'><span>N.B</span> Check cover letter output and regenerate if any error occurred "
+    "in initial output before downloading. InkApply can make mistakes.</p>",
+    unsafe_allow_html=True,
+)
 
 # ---------------- RESULT (persists across reruns) ----------------
 if st.session_state.cover_letter:
