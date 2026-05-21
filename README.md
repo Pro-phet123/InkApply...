@@ -85,3 +85,25 @@ Post-processing Layer:
     - Tone refinement
         ↓
 Streamlit UI Output (Editable Cover Letter)
+
+```
+## 🚀 Setup Commands
+
+#### 1. Clone repository
+```bash
+git clone https://github.com/your-username/InkApply.git
+
+```
+
+
+#### 2. Enter project folder
+  
+```bash
+cd InkApply
+
+```
+
+#### 3. Create virtual environment
+```bash
+python -m venv venv
+```
