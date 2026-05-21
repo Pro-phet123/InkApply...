@@ -1,34 +1,87 @@
 # InkApply
 
-# ✍️ InkApply – AI Resume & Cover Letter Generator (Powered by Generative AI)
+# ✍️ InkApply — AI Resume & Cover Letter System for ATS Optimization
 
 <p align="center">
-  <img src="Inkapply-logo.png" alt="InkApply Logo" width="300"/>
+  <img src="Inkapply-logo.png" alt="InkApply Logo" width="260"/>
 </p>
 
-**InkApply** is a smart, AI-powered web application that generates personalized, ATS-friendly resumes and cover letters in seconds. Built with **Streamlit** and **Hugging Face Transformers**, this project harnesses the power of Large Language Models (LLMs) to help job seekers craft tailored application documents that stand out.
+<p align="center">
+  <b>An AI-powered system that transforms job descriptions and raw experience into structured, ATS-optimized resumes and tailored cover letters.</b>
+</p>
 
 ---
 
-## 🚀 Features
+## 🚀 Problem Statement
 
-- **Cover Letter Generator** – Generate customized cover letters based on your resume and job title.
-- **Resume Enhancer** – Improve bullet points, summaries, and skills sections to match specific job roles.
-- **Job Description Analyzer** – Extracts key skills and aligns content with job requirements.
-- **Streamlit Interface** – Simple and clean UI for an easy, guided writing experience.
-- **Real-Time Generation** – Get instant, editable results using open-source LLMs.
+Most job seekers struggle with:
+
+- Writing resumes that match ATS filtering systems  
+- Translating experience into role-specific impact statements  
+- Adapting applications for each job posting efficiently  
+- Identifying what recruiters actually prioritize in job descriptions  
+
+Generic AI tools generate text — but do not optimize for hiring systems.
+
+---
+
+## 💡 Solution
+
+**InkApply** is built as a focused resume intelligence system, not a general-purpose chatbot.
+
+It converts:
+> Raw experience + Job description → Structured, ATS-aligned application documents
+
+The system ensures every output is:
+- Context-aware (job-specific)
+- Keyword-aligned (ATS optimized)
+- Structurally formatted (recruiter-ready)
+- Professionally rewritten (impact-focused)
 
 ---
 
-## 🧠 Built With
+## ⚙️ Key Capabilities
 
-- **Python 3.9+**
-- **Streamlit** – Web interface
-- **Hugging Face Transformers** – For LLM-based content generation
-- **Pretrained LLMs** – Such as GPT2 or DistilGPT2 (no API key needed)
-- **spaCy / NLTK** – For light NLP and keyword extraction (optional)
+### 🧠 Role-Aware Resume Transformation  
+Automatically rewrites generic experience into job-targeted impact statements aligned with role expectations.
+
+### 📄 ATS-Optimized Cover Letter Generator  
+Generates structured, professional cover letters aligned with job requirements and recruiter signals.
+
+### 🔍 Job Description Intelligence Layer  
+Extracts:
+- Required skills  
+- Hidden keyword patterns  
+- Responsibility clusters  
+- Priority signals used in hiring decisions  
+
+### ✍️ Structured Content Engine  
+Ensures output follows professional resume architecture:
+- Clear sections  
+- Bullet optimization  
+- Impact-driven phrasing  
+
+### 💻 Interactive Streamlit Interface  
+Simple, fast, and user-friendly interface designed for real-time editing and generation.
 
 ---
-## 📸 Live Demo
 
-[🔗 TryInkApply](https://inkapply-cover-letter.streamlit.app/)
+## 🧠 System Architecture
+
+```text
+User Input (Resume + Job Description)
+        ↓
+Text Processing Layer (spaCy / NLP cleanup)
+        ↓
+Skill & Keyword Extraction Module
+        ↓
+Prompt Construction Engine (Role-specific templates)
+        ↓
+Hugging Face Transformer Model Inference
+        ↓
+Post-Processing Layer:
+    - Formatting normalization
+    - ATS keyword reinforcement
+    - Bullet restructuring
+        ↓
+Streamlit UI Rendering (Editable Output)
