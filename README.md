@@ -12,7 +12,7 @@
 
 ---
 
-## 🚀 Problem
+## Problem
 
 Writing a strong cover letter for every job application is:
 
@@ -58,7 +58,7 @@ Ensures each cover letter reflects:
 - Job-specific alignment  
 - Professional storytelling flow  
 
-### 🎯 ATS Optimization Engine  
+###  ATS Optimization Engine  
 Rewrites content to improve keyword matching and recruiter filtering systems.
 
 ### 💻 Streamlit Interface  
@@ -66,7 +66,7 @@ Simple, fast interface for generating and editing cover letters in real time.
 
 ---
 
-## 🧠 System Architecture
+## 🏗 System Architecture
 
 ```text
 User Input (Experience + Job Description)
@@ -87,7 +87,7 @@ Post-processing Layer:
 Streamlit UI Output (Editable Cover Letter)
 
 ```
-## 🚀 Setup Commands
+## Run Locally
 
 #### 1. Clone repository
 ```bash
