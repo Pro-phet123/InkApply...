@@ -43,16 +43,16 @@ Each output is optimized for:
 
 ## ⚙️ Key Features
 
-### ✍️ Role-Specific Cover Letter Generator  
+###  Role-Specific Cover Letter Generator  
 Generates fully structured cover letters tailored to a specific job description and role.
 
-### 🔍 Job Description Intelligence Layer  
+###  Job Description Intelligence Layer  
 Extracts key hiring signals from job postings, including:
 - Required skills  
 - Core responsibilities  
 - Recruiter priority keywords  
 
-### 🧠 Context-Aware Writing Engine  
+###  Context-Aware Writing Engine  
 Ensures each cover letter reflects:
 - User experience relevance  
 - Job-specific alignment  
@@ -61,7 +61,7 @@ Ensures each cover letter reflects:
 ###  ATS Optimization Engine  
 Rewrites content to improve keyword matching and recruiter filtering systems.
 
-### 💻 Streamlit Interface  
+###  Streamlit Interface  
 Simple, fast interface for generating and editing cover letters in real time.
 
 ---
