@@ -107,3 +107,26 @@ cd InkApply
 ```bash
 python -m venv venv
 ```
+
+#### 4a. Activate virtual environment(windows)
+```bash
+venv\Scripts\activate
+```
+
+#### 4b. Activate virtual environment(mac/linux)
+```bash
+source venv/bin/activate
+```
+
+#### 5. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+#### 6. Run the application
+```bash
+streamlit run main.py
+```
+
+## 🌐 Live Demo
+
+[Launch Web App](https://inkapply-cover-letter.streamlit.app/)
