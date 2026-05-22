@@ -124,7 +124,7 @@ pip install -r requirements.txt
 ```
 #### 6. Run the application
 ```bash
-streamlit run main.py
+streamlit run app.py
 ```
 
 ## 🌐 Live Demo
