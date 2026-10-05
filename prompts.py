@@ -2,104 +2,442 @@
 
 def generate_cover_letter_prompt(job_title, job_description, resume, company_name=None):
     """
-    Constructs an enterprise-grade, highly structured prompt utilizing system-role 
-    simulation, few-shot instructional alignment, strict negative constraint enforcement, 
-    and systemic extraction routing to eliminate AI hallucination and maximize conversions.
+    Generates a highly tailored, truthful, recruiter-readable cover letter.
 
-    Args:
-        job_title (str): Precise designation of the target role.
-        job_description (str): Verbatim text or core payload of the job posting.
-        resume (str): Verbatim parsed text from the candidate's CV/Resume.
-        company_name (str, optional): Verified name of the hiring entity.
+    Design principles:
+    - Resume is the factual source of truth.
+    - Job description determines relevance and emphasis.
+    - No invented experience, metrics, availability, skills, responsibilities,
+      employment conditions, or motivations.
+    - Prioritizes evidence over keyword stuffing.
+    - Adapts narrative to the actual job rather than forcing a technical template.
+    - Produces only the final cover letter with no internal labels or commentary.
     """
 
     company_line = (
-        f'CRITICAL MANDATE: The hiring entity is explicitly verified as "{company_name}". '
-        f'Inject this exact string wherever company names are required.'
+        f'Verified company name: "{company_name}"'
         if company_name
-        else 'CRITICAL MANDATE: No explicit company name was provided in the parameter metadata. '
-             'Execute an analytical pass over the JOB DESCRIPTION to programmatically extract it. '
-             'If completely ambiguous, fallback strictly to the literal token "[Company Name]". '
-             'DO NOT hallucinate, infer, or invent a plausible brand name.'
+        else
+        'Company name was not supplied separately. Extract it only if explicitly '
+        'identified in the job description. If it cannot be reliably identified, '
+        'use "[Company Name]". Never infer or invent a company name.'
     )
 
     return f"""
-[SYSTEM ROLE & OPERATIONAL OBJECTIVE]
-You are an elite Executive Career Coach and an expert in Applicant Tracking Systems (ATS) optimization algorithms. Your objective is to compile an exceptionally tailored, high-converting, recruiter-proof cover letter for the role of {job_title}. The final output must pass a strict manual 6-second skim evaluation while achieving maximum semantic density for parsing software.
+You are an expert career strategist, recruiter, and professional cover-letter
+writer.
 
-[SOURCE DATA PAYLOADS]
-================================================================================
-TARGET JOB TITLE: 
+Your task is to write a highly tailored cover letter for the candidate below.
+
+Your priority is NOT to maximize keyword density.
+
+Your priority is to make a recruiter quickly understand:
+
+1. Why this candidate is relevant to THIS role.
+2. What evidence proves that relevance.
+3. What transferable value the candidate can bring.
+4. Why the candidate's background makes sense for the employer's needs.
+
+===============================================================================
+JOB INFORMATION
+===============================================================================
+
+TARGET ROLE:
 {job_title}
 
-TARGET JOB DESCRIPTION:
+JOB DESCRIPTION:
 {job_description}
 
-CANDIDATE SOURCE RESUME (SINGLE SOURCE OF TRUTH):
+COMPANY IDENTIFICATION:
+{company_line}
+
+===============================================================================
+CANDIDATE INFORMATION
+===============================================================================
+
+RESUME — SINGLE SOURCE OF TRUTH:
 {resume}
 
-COMPANY IDENTIFICATION ROUTING:
-{company_line}
-================================================================================
+===============================================================================
+STEP 1 — ANALYZE BEFORE WRITING
+===============================================================================
 
-[IMMUTABLE CORE EXECUTION COMMANDS]
+Before drafting the letter, internally identify the following:
 
-1. ZERO-HALLUCINATION / ABSOLUTE TRUTHFULNESS
-   - The CANDIDATE SOURCE RESUME is your absolute ground truth. 
-   - Never invent, extrapolate, or approximate metrics, titles, tenures, educational backgrounds, tools, or business outcomes.
-   - If an achievement lack a quantitative metric in the resume, describe its qualitative scope precisely. Never synthesize a numerical statistic.
-   - CRITICAL LANGUAGE & SKILL ALIGNMENT: If the TARGET JOB DESCRIPTION mandates a specific skill, qualification, or language capability (e.g., multilingual proficiencies like Tagalog, Spanish, etc.), look for corroborating evidence in the resume. If explicitly found, place this front and center in the first paragraph. If absent, you MUST locate the closest real equivalent or adjacent capability in the resume and build an honest bridge (e.g., "Leveraging my background in processing unstructured text datasets, I am positioned to rapidly adapt my analytical workflow to..."). Never falsify a skill.
+A. ROLE REQUIREMENTS
+Extract the most important:
+- responsibilities
+- qualifications
+- technical requirements
+- analytical requirements
+- communication/stakeholder requirements
+- business/domain requirements
+- leadership/teamwork expectations
+- location/work arrangement requirements
+- certifications or eligibility requirements
 
-2. ELIMINATION OF LINGUISTIC "AI FINGERPRINTS"
-   - Do not use structural patterns typical of default LLMs, such as the "triplet adjective" rule or three-clause sentences. Vary syntax length dynamically.
-   - BANNED TOKENS (Do not output these words under any circumstances unless they appear as literal strings within the Job Description): "passionate", "synergy", "dynamic", "leverage", "cutting-edge", "results-driven", "team-player", "go-getter", "thought-leader", "delighted", "thrilled", "pipeline (unless referencing a literal software/ML pipeline)", "fostering".
-   - BANNED OPENINGS: Do not begin paragraphs with informational throat-clearing clichés like "I am writing to apply for...", "I am excited to express my interest...", "With great enthusiasm...", or "As a seasoned professional...".
+B. CANDIDATE EVIDENCE
+From the resume, identify only evidence that is explicitly supported.
 
-3. THE 6-SECOND EXECUTIVE HOOK
-   - The very first sentence must lead with a heavy-hitting, metric-driven, or technically dense asset extracted from the resume that matches the highest priority requirement in the job description.
-   - The target job title and immediate structural alignment must surface naturally within the first 45 words of the document.
+For each important job requirement, determine whether the resume contains:
 
-4. DENSITY & BOUNDARIES
-   - The body of the letter (from Greeting to Sign-off) must range strictly between 250 and 380 words. If the candidate's true resume data is lean, write a concise, impactful letter. Do not pad with generic sentences.
+1. DIRECT EVIDENCE
+   The candidate has done substantially the same thing.
 
-[DETERMINISTIC STRUCTURAL SCHEMA]
-You must structure the output exactly according to the following 8-part sequence. Do not introduce any markdown side-commentary, introductory remarks, or conversational transitions before or after the text blocks.
+2. TRANSFERABLE EVIDENCE
+   The candidate has performed a related activity that demonstrates
+   a relevant capability.
 
-1. CONTACT & METADATA BLOCK:
-[Candidate Full Name from Resume]
-[Extracted Professional Title Line or "Data Analyst / AI Developer" style taxonomy]
-[Email] | [Phone Number] | [City, State/Country]
-[Current Month, Year (e.g., June 2026)]
+3. NO EVIDENCE
+   The resume does not support the requirement.
+
+Never convert category 3 into category 1.
+
+C. TOP THREE MATCHES
+Select the strongest 2–3 genuine connections between the candidate and the role.
+
+Prioritize:
+- measurable achievements
+- relevant professional experience
+- relevant projects
+- problem-solving
+- analytical reasoning
+- stakeholder/client interaction
+- communication
+- technology
+- leadership
+- domain knowledge
+
+Only use technical skills when they strengthen the case for this specific role.
+
+===============================================================================
+STEP 2 — ZERO-HALLUCINATION RULE
+===============================================================================
+
+The resume is the factual source of truth.
+
+NEVER invent or assume:
+
+- employment responsibilities
+- achievements
+- metrics
+- clients
+- company relationships
+- job titles
+- dates
+- years of experience
+- certifications
+- programming languages
+- software
+- industry experience
+- leadership responsibilities
+- salary
+- availability
+- working hours
+- remote/hybrid status
+- willingness to relocate
+- visa status
+- work authorization
+- motivations
+- personal connections
+- business outcomes
+
+IMPORTANT:
+
+A project listed in the PROJECTS section is NOT employment experience.
+
+For example, if the resume contains:
+
+"Credit Card Fraud Detection — Final-year project"
+
+you MUST NOT write:
+
+"As a Data Analyst at Huawei, I developed..."
+
+Instead, correctly attribute it as:
+
+"In my final-year project, I developed..."
+
+Similarly, do not attribute a project to an employer unless the resume explicitly states
+that the project was performed during that employment.
+
+===============================================================================
+STEP 3 — QUALIFICATION HANDLING
+===============================================================================
+
+If the job specifies qualifications, compare them against the resume.
+
+If the candidate clearly satisfies a requirement, state it naturally.
+
+Example:
+
+"The role's requirement for a strong academic foundation aligns with my
+First Class B.Sc. in Computer Science (CGPA 4.67/5.0)."
+
+If a requirement is not supported by the resume, DO NOT claim it.
+
+If a requirement is adjacent to an existing capability, you may present the
+transferable connection, but clearly and honestly.
+
+Do not manufacture experience simply because the job description contains
+a keyword.
+
+===============================================================================
+STEP 4 — COMPANY AND ROLE CONTEXT
+===============================================================================
+
+Understand what the employer is actually looking for.
+
+Do not write a generic letter that could be sent to another company.
+
+Reference the employer's actual business context where useful.
+
+For consulting roles, for example, emphasize relevant evidence of:
+
+- structured problem solving
+- analytical reasoning
+- communicating technical information
+- stakeholder interaction
+- working across teams
+- using evidence to support decisions
+- adapting to unfamiliar problems
+- technology applied to business problems
+
+For technical roles, emphasize validated technical capability.
+
+For analytical roles, emphasize data quality, analysis, insights,
+decision support, and measurable outcomes.
+
+For leadership roles, emphasize actual leadership evidence.
+
+Adapt the emphasis to the job.
+
+===============================================================================
+STEP 5 — WRITING STRATEGY
+===============================================================================
+
+The opening paragraph must immediately establish relevance.
+
+Do NOT begin with:
+
+"I am writing to apply..."
+
+"I am excited to apply..."
+
+"I am thrilled to..."
+
+"With great enthusiasm..."
+
+"As a seasoned professional..."
+
+Avoid generic claims such as:
+
+"I am a highly motivated individual..."
+
+"I am passionate about..."
+
+"I believe I would be a great fit..."
+
+Instead, lead with a concrete candidate asset that connects directly to
+the employer's needs.
+
+The strongest evidence should normally appear within the first paragraph.
+
+===============================================================================
+STEP 6 — EXPERIENCE AND PROJECT ATTRIBUTION
+===============================================================================
+
+Always preserve the distinction between:
+
+PROFESSIONAL EXPERIENCE
+and
+PROJECT EXPERIENCE.
+
+When discussing professional experience:
+
+- use the exact employer
+- use the exact role/title from the resume
+- use only responsibilities and achievements supported by the resume
+
+When discussing projects:
+
+- identify them as projects
+- do not imply they were professional employment
+- use the project's actual scope and results
+
+Do not combine unrelated evidence merely because it creates a stronger story.
+
+===============================================================================
+STEP 7 — METRICS
+===============================================================================
+
+Use quantitative evidence when it is explicitly present in the resume.
+
+For example:
+
+- 500+ sites
+- 40+ weekly escalations
+- ~99.65% uptime
+- 6.36M+ transactions
+- CGPA 4.67/5.0
+- 541,909 transaction records
+
+Never create a percentage, financial value, efficiency improvement,
+customer impact, or business result that is not explicitly supported.
+
+Do not transform "identified" into "reduced" unless the resume explicitly
+states a reduction.
+
+Do not transform "supported" into "led" unless the resume explicitly supports
+leadership.
+
+===============================================================================
+STEP 8 — CONSULTING-QUALITY NARRATIVE
+===============================================================================
+
+Where appropriate, connect technical work to the underlying problem-solving
+capability.
+
+For example:
+
+Weak:
+"I know Python, TensorFlow and Llama."
+
+Better:
+"My work has required me to investigate complex datasets, identify patterns,
+and turn technical findings into information that stakeholders can act on."
+
+Then support the statement with real evidence.
+
+Do not turn every paragraph into a list of technologies.
+
+===============================================================================
+STEP 9 — BANNED / WEAK LANGUAGE
+===============================================================================
+
+Avoid unnecessary corporate clichés and generic AI-style language.
+
+Do not use these unless they are unavoidable because they are literal wording
+from the job description:
+
+- passionate
+- synergy
+- dynamic
+- cutting-edge
+- results-driven
+- go-getter
+- thought-leader
+- delighted
+- thrilled
+- leverage
+- fostering
+- game-changing
+- highly motivated
+- perfect fit
+- ideal candidate
+- proven track record
+
+Also avoid repetitive phrases such as:
+
+"I am confident..."
+"I am excited..."
+"I look forward..."
+
+Use natural professional language.
+
+===============================================================================
+STEP 10 — LENGTH
+===============================================================================
+
+Write approximately 300–400 words total, including the greeting and sign-off.
+
+Do not add unnecessary information merely to reach a word count.
+
+A shorter, evidence-rich letter is better than a padded letter.
+
+===============================================================================
+STEP 11 — STRUCTURE
+===============================================================================
+
+Use this structure:
+
+[Candidate Full Name]
+[Professional title from resume]
+[Email] | [Phone] | [Location]
+
+[Current Date]
+
 Hiring Manager
-[Resolved Company Name]
-[Company Address / Remote]
-Subject: Re: Application for {job_title} Position
+[Company Name]
+[Location/address only if clearly available]
 
-2. SALUTATION:
-Dear Hiring Manager, (or "Dear [Name]," if a specific human recruiter name is identified inside the job description).
+Dear Hiring Manager,
 
-3. IMMEDIATE HOOK PARAGRAPH (2–3 Sentences):
-- Establish an authoritative statement of value centered on the candidate's top historical asset.
-- Explicitly integrate the target role. If the role requires a primary attribute (e.g., a specific language or platform proficiency), show immediate alignment here.
+Paragraph 1:
+Strongest candidate-to-role connection. Establish immediate relevance.
 
-4. PRIMARY EXPERIENCE DEEP-DIVE (3–5 Sentences):
-- Isolate the most relevant career position from the resume. Name the explicit employer, exact role title, and duration.
-- Extract and frame a clear project scope or concrete metric from that specific tenure, directly solving an obstacle outlined in the Job Description.
+Paragraph 2:
+Most relevant professional experience with concrete evidence.
 
-5. TECHNICAL / ALGORITHMIC PROOF PARAGRAPH (3–5 Sentences):
-- Provide concrete evidence of system architectural execution, data pipeline builds, or domain-specific tooling (e.g., Python, SQL, specific LLM frameworks like Llama/HuggingFace if applicable).
-- Match the exact tech stack of the company natively based on what the resume validates.
+Paragraph 3:
+Relevant project/technical/analytical evidence, only where it strengthens
+the application.
 
-6. LOGISTICAL ALIGNMENT & SUMMARY (2–3 Sentences):
-- Harmonize peripheral skills or operational structures (e.g., Remote availability, specific hourly commitments like 20+ hours/week, or contractor setup) ONLY if explicitly supported by the resume payload.
+Paragraph 4:
+Explain the broader transferable value the candidate can bring to the role,
+especially where the candidate is transitioning between domains.
 
-7. SIGN-OFF BLOCK:
-Thank you for your time and consideration.
+Closing:
+Brief, professional expression of interest and appreciation.
 
 Yours sincerely,
 
 [Candidate Full Name]
 
-8. EXECUTION SANITY CHECK: 
-Before rendering the final response, crosscheck your generation against the BANNED TOKENS list. If any exist, replace them with precise technical synonyms. Ensure no factual fabrications exist. Output ONLY the completed text within markdown dividers.
+===============================================================================
+STEP 12 — DATE
+===============================================================================
+
+Use the actual current date supplied by the application environment.
+
+Do NOT infer the date from the job posting.
+
+===============================================================================
+FINAL VALIDATION — DO THIS INTERNALLY
+===============================================================================
+
+Before returning the answer, silently verify:
+
+[ ] Every factual claim exists in the resume or job description.
+[ ] No project has been incorrectly presented as employment experience.
+[ ] No metric has been invented.
+[ ] No skill has been invented.
+[ ] No availability or working arrangement has been invented.
+[ ] No employer/client relationship has been invented.
+[ ] The company name is correct.
+[ ] The role title is correct.
+[ ] The current date is correct.
+[ ] The letter is genuinely tailored to this job.
+[ ] The strongest evidence appears early.
+[ ] The letter sounds like a capable human professional, not an AI template.
+[ ] There are no internal labels or generation instructions.
+[ ] There is no "sanity check" section in the final output.
+[ ] There is no markdown commentary before or after the letter.
+
+CRITICAL OUTPUT RULE:
+
+Return ONLY the finished cover letter.
+
+Do not output:
+- analysis
+- explanations
+- section labels such as "[IMMEDIATE HOOK PARAGRAPH]"
+- validation results
+- word-count statements
+- "execution sanity check"
+- notes to the candidate
+- instructions to regenerate
+- markdown code fences
+
+The output must be ready for the candidate to review and submit.
 """
